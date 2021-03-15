@@ -1,8 +1,12 @@
 ---
-title: "Project 2"
-author: "Riley Maher"
-date: "3/15/2021"
-output: html_document
+title: "Team 12 - Hot Cocoa Codesters Project 1"
+author: "Grace Chang, Seungwan Kim, Riley C Maher, Sage O'Toole, Jenna Kay Probst"
+date: "2/21/2021"
+output:
+  html_document:
+    number_sections: True
+    toc: True
+    toc_float: True
 ---
 
 ```{r setup, include=FALSE}
