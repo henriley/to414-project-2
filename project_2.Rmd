@@ -23,7 +23,7 @@ head(proj)
 ```
 
 ```{r}
-table(proj$loan_status)
+str(proj)
 ```
 
 ```{r}
