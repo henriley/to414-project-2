@@ -1,0 +1,47 @@
+---
+title: "Project 2"
+author: "Riley Maher"
+date: "3/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Project 2
+
+## Importing Packages
+
+```{r}
+library(gmodels)
+```
+
+```{r}
+proj <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
+head(proj)
+```
+
+```{r}
+table(proj$loan_status)
+```
+
+```{r}
+summary(proj)
+```
+
+##  Linear Regression
+
+```{r}
+# linear_m <- lm(borrower_rate ~ )
+```
+
+## Logistic Regression
+
+```{r}
+# we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
+# even though there are four options (defaulted, chargeoff, completed, current)
+
+# logistic_m <- glm()
+```
+
