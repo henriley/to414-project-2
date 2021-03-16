@@ -33,10 +33,7 @@ head(listings)
 str(listings)
 
 # Dropping redundant columns and columns with too many character factor levels 
-
 listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
-
-str(listings)
 
 # Converting logical values to binary 
 cols <- sapply(listings, is.logical)
@@ -45,7 +42,7 @@ str(listings)
 ```
 
 ```{r}
-summary(listings)
+# summary(listings)
 ```
 
 ##  Linear Regression
@@ -53,8 +50,28 @@ summary(listings)
 A linear regression model to determine how interest rate for loans is determined. Essentially, we are getting an idea of what the market considers “credit risks”. We get a sense of how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
 ```{r}
-linear_m <- lm(borrower_rate ~ ., data=listings)
-summary(linear_m)
+listings_lm <- listings
+linear1 <- lm(borrower_rate ~ ., data=listings_lm)
+summary(linear1)
+# income_range and income_range_description were not significant which is odd
+# ALL NOT SIGNIFICANT: months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog
+```
+```{r}
+listings_lm = subset(listings_lm, select = -c(income_range, income_range_description, months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog))
+
+linear2 <- lm(borrower_rate ~ ., data=listings_lm)
+summary(linear2)
+
+# ALL NOT SIGNIFICANT: stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days
+```
+
+```{r}
+listings_lm = subset(listings_lm, select = -c(stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days))
+linear3 <- lm(borrower_rate ~ ., data=listings_lm)
+summary(linear3)
+
+# Not all factors of scorex, employment_status_description are significant
+# income_verifiable, dti_wprosper_loan are only significant at p-value < 0.1
 ```
 
 ## Logistic Regression
@@ -64,6 +81,8 @@ A logistic model of what factors lead to a loan default. Essentially we want to 
 ```{r}
 # we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
 # even though there are four options (defaulted, chargeoff, completed, current)
+
+# From the internet: The term "charge off" means that the original creditor has given up on being repaid according to the original terms of the loan. It considers the remaining balance to be bad debt, but that doesn't mean you no longer owe the amount that has not been repaid.
 
 # logistic_m <- glm()
 ```
