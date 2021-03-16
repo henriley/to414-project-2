@@ -24,16 +24,28 @@ library(gmodels)
 ```
 
 ```{r}
-proj <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
-head(proj)
+listings <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
+head(listings)
+```
+
+## Data Cleaning
+```{r}
+str(listings)
+
+# Dropping redundant columns and columns with too many character factor levels 
+
+listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
+
+str(listings)
+
+# Converting logical values to binary 
+cols <- sapply(listings, is.logical)
+listings[,cols] <- lapply(listings[,cols], as.numeric)
+str(listings)
 ```
 
 ```{r}
-str(proj)
-```
-
-```{r}
-summary(proj)
+summary(listings)
 ```
 
 ##  Linear Regression
@@ -41,7 +53,8 @@ summary(proj)
 A linear regression model to determine how interest rate for loans is determined. Essentially, we are getting an idea of what the market considers “credit risks”. We get a sense of how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
 ```{r}
-# linear_m <- lm(borrower_rate ~ )
+linear_m <- lm(borrower_rate ~ ., data=listings)
+summary(linear_m)
 ```
 
 ## Logistic Regression
