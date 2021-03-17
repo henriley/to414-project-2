@@ -22,7 +22,7 @@ Our objective is to identify arbitrage opportunities. Are there elements that th
 ```{r}
 library(gmodels)
 ```
-
+## Importing Data
 ```{r}
 listings <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
 head(listings)
@@ -45,7 +45,7 @@ str(listings)
 # summary(listings)
 ```
 
-##  Linear Regression
+## Linear Regression
 
 A linear regression model to determine how interest rate for loans is determined. Essentially, we are getting an idea of what the market considers “credit risks”. We get a sense of how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
@@ -81,9 +81,60 @@ A logistic model of what factors lead to a loan default. Essentially we want to 
 ```{r}
 # we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
 # even though there are four options (defaulted, chargeoff, completed, current)
-
 # From the internet: The term "charge off" means that the original creditor has given up on being repaid according to the original terms of the loan. It considers the remaining balance to be bad debt, but that doesn't mean you no longer owe the amount that has not been repaid.
 
-# logistic_m <- glm()
+listings_glm <- listings
+listings_glm <- subset(listings_glm, loan_status_description != "CURRENT") #Removed loans still pending
+listings_glm <- subset(listings_glm, loan_status_description != "CHARGEBACK") #Removes charge back (will change to DEFAULT after asking professor)
+
+listings_glm$loan_status_description <- ifelse(listings_glm$loan_status_description == "DEFAULTED", 1, 0) #assigned 1 if loan defaulted, 0 if completed
 ```
+
+```{r}
+log_m1 <- glm(loan_status_description ~ ., data= listings_glm)
+summary(log_m1)
+#ALL NOT SIGNIFICANT: number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner
+```
+```{r}
+#removing insignificant variables 
+listings_glm = subset(listings_glm, select = -c(number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner))
+
+```
+
+```{r}
+log_m2 <- glm(loan_status_description ~., data = listings_glm)
+summary(log_m2)
+#ALL NOT SIGNIFICANT: monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days
+```
+
+```{r}
+#removing insignificant variables 
+listings_glm = subset(listings_glm, select = -c(monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days))
+```
+
+```{r}
+log_m3 <- glm(loan_status_description~ ., data = listings_glm)
+summary(log_m3)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
