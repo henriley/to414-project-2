@@ -85,9 +85,9 @@ A logistic model of what factors lead to a loan default. Essentially we want to 
 
 listings_glm <- listings
 listings_glm <- subset(listings_glm, loan_status_description != "CURRENT") #Removed loans still pending
-listings_glm <- subset(listings_glm, loan_status_description != "CHARGEBACK") #Removes charge back (will change to DEFAULT after asking professor)
 
-listings_glm$loan_status_description <- ifelse(listings_glm$loan_status_description == "DEFAULTED", 1, 0) #assigned 1 if loan defaulted, 0 if completed
+
+listings_glm$loan_status_description <- ifelse(listings_glm$loan_status_description == "COMPLETED", 0, 1) #assigned 1 if loan defaulted or chargedback, 0 if completed
 ```
 
 ```{r}
