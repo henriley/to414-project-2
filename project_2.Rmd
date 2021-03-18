@@ -35,10 +35,21 @@ str(listings)
 # Dropping redundant columns and columns with too many character factor levels 
 listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
 
+# Check the number of NA in each variables
+sapply(listings, function(x) sum(is.na(x)))
+
+# Cleaning NA values
+listings$months_employed <- ifelse(is.na(listings$months_employed),0,listings$months_employed)
+
 # Converting logical values to binary 
 cols <- sapply(listings, is.logical)
 listings[,cols] <- lapply(listings[,cols], as.numeric)
 str(listings)
+
+# Comments from office hour
+# We may want to try to change NA value to 0 in months_employed and in installments balance
+# kEEP THE NA VALUE AND ONLY REMOVED ALL INSIGNIFICANT VARIABLES. (SUGGESTION)
+# After that, run the code again, and check whether NA value disappeared (Some of predictor variables have NA values may be significant, so show the works whether those are significant or not)
 ```
 
 ```{r}
@@ -79,6 +90,12 @@ summary(linear3)
 A logistic model of what factors lead to a loan default. Essentially we want to check our understanding from the last model. All the items that the last model showed as credit risks leading to compensatory adjustment in interest rate - do those items really cause defaults. Are there other items which cause default but which does not show in Model 1?
 
 ```{r}
+# Make the loan status binary with "DEFAULTED"
+listings$default <- ifelse(listings$loan_status_description == "DEFAULTED", 1, 0)
+```
+
+
+```{r}
 # we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
 # even though there are four options (defaulted, chargeoff, completed, current)
 # From the internet: The term "charge off" means that the original creditor has given up on being repaid according to the original terms of the loan. It considers the remaining balance to be bad debt, but that doesn't mean you no longer owe the amount that has not been repaid.
@@ -112,6 +129,7 @@ summary(log_m2)
 listings_glm = subset(listings_glm, select = -c(monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days))
 ```
 
+
 ```{r}
 log_m3 <- glm(loan_status_description~ ., data = listings_glm)
 summary(log_m3)
@@ -119,8 +137,25 @@ summary(log_m3)
 
 
 
+```{r}
+# From office hour
+## Response Variable: default: some predictor variables are changed in terms of 'significant level'.
+
+# We could start the logistic regression model from beginning, with 'default' as the response variable
+log_m3 <- glm(default~ ., data = listings_glm)
+summary(log_m3)
+```
 
 
+
+# Test
+```{r}
+prdictVar <- predict(log_m3, type='response')
+predictBin <- ifelse(prdictVar > 0.5, 1, 0)
+
+## Almost correct, but the arguments do not have the same length. Don't know how to modify it
+confusionMatrix <- table(prd=predictBin, act=listings$borrower_rate)
+```
 
 
 
