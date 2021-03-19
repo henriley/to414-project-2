@@ -22,6 +22,7 @@ Our objective is to identify arbitrage opportunities. Are there elements that th
 ```{r}
 library(gmodels)
 ```
+
 ## Importing Data
 ```{r}
 listings <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
@@ -39,16 +40,12 @@ str(listings)
 listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
 
 # Check the number of NA in each variables
-# sapply(listings, function(x) sum(is.na(x)))
+colSums(is.na(listings))
+sapply(listings, function(x) sum(is.na(x)))
 
 # Cleaning NA values
-# listings$months_employed <- ifelse(is.na(listings$months_employed),0,listings$months_employed)
-
-############################################################################################################
-
 listings$months_employed[is.na(listings$months_employed)] <- mean(listings$months_employed, na.rm=TRUE)
 
-############################################################################################################
 
 # Converting logical values to binary 
 cols <- sapply(listings, is.logical)
@@ -124,9 +121,6 @@ summary(linear4)
 ############################################################################################################
 ```
 
-Defaulted Loans not significant. scorex690-701 and scorex702-723 not significant. income_range
- not significant. income_range_description\$1-24,999, income_range_description$25,000-49,999,
-income_range_description\$50,000-74,999, income_range_description$75,000-99,999, income_range_descriptionNot employed not significant. income_verifiable not significant. dti_wprosper_loan not significant. Only self-employed employment status significant. months_employed not significant. monthly_debt not significant. Any delinquencies not significant. Any public records not significant. Only open_credit_lines significant. installment_balance not significant. real_estate_balance not significant. revolving_balance not significant. real_estate_payment not significant. total_trade_items not significant. satisfactory_accounts not significant. now_delinquent_derog not significant. was_delinquent_derog not significant.
 
 With the +100,000 income category being significant, we can assume that at higher income levels, the rates are pretty much set. Only when we get into the lower to mid range incomes do the rates have to be more granular. With the credit score range of 690-723 not being significant, we can assume the majority of borrowers have scores in that range, making the rates for that range set. Only self-employed of the employment statuses was significant in determining the borrower rate. This could be because a self-employed person could have a less secure amount and frequency when compared to a full-time or part-time employee, making them unpredictable. Delinquencies were also not significant, from this we can probably assume some multicollinearity with other variables. On its own, delinquencies would probably have a significant effect on the borrower rate, but when coupled with credit score, the delinquencies are not a strong predictor (same thing with defaulted loans, probably).
 
@@ -238,6 +232,8 @@ prediction <- predict(log_m3, newdata = listings_test, type = "response")
 
 CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
            prop.chisq=FALSE)
+
+confusionMatrix(prediction, test_set_labels)
 
 ############################################################################################################
 ```
