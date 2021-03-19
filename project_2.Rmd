@@ -238,6 +238,50 @@ confusionMatrix(prediction, test_set_labels)
 ############################################################################################################
 ```
 
+# preliminary analysis
+
+(Some of these don't make intuitive sense...could be result of multicollinearity in models)
+
+## Linear Regression risk factors
+
+- prosper rating B-HR
+- listing term
+- listing monthly payment
+- score 600-689
+- income range 100,000+
+- lender indicator
+- bankcard utilization
+- total open revolving accounts
+- total inquiries
+- delinquencies
+
+## Logistic Model default factors
+
+- principal balance
+- prosper rating B & C
+- income range 100,000+
+- not employed
+- lender indicator
+- monthly debt
+- public records last 12 months
+- total open revolving accounts
+
+## arbitrage opportunities
+
+The market does not consider a risk factor but it actually is:
+
+- principal balance
+- not employed
+- monthly debt
+- public records last 12 months
+
+The market considers a risk factor but it actually isn't:
+
+- listing term
+- listed monthly payment
+- score 600-689
+- bankcard utilization
+- delinquencies
 
 
 
