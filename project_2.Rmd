@@ -235,6 +235,21 @@ CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
 
 ############################################################################################################
 ```
+## Logistic Regression Analysis
+
+For our logistic regression we choose to compare the results of the regression with a set of test data. The martix above shows our log regression model to have an accuracy of 91.8% which would likely be satisfactory for predicting defaults for a real loan company. 
+
+Despite the many, many variables analyzed, only the following are significant: 
+* principal balance
+* prosper rating B , C
+* income range 100,000+
+* not employed
+* lender indicator
+* monthly debt
+* public records last 12 months
+* total open revolving accounts
+
+The variables provide valuable information. The proposer rating system may be inefficient, with only two of the seven ratings (B and C) being valuable to predict defaults. The income and employment results show that they are both important, but less detail on employment would be sufficient since the only factor that was significant was whether or not the loan taker had any type of employment or not. Unsurprisingly, the amount of the loan and the amount of debt the loan taker has is significant and thus should be calculated and monitored closely. Interestingly, many of the significant factors are used to decide a persons credit score (total open accounts, debt) but credit score itself was not significant, giving reason to study credit score more closely to see where its accuracy can be improved too.  
 
 # Arbitrage Opportunities
 
