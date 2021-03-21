@@ -280,7 +280,6 @@ div.tocify {
 <div id="importing-packages" class="section level2" number="2.1">
 <h2 number="2.1"><span class="header-section-number">2.1</span> Importing Packages</h2>
 <pre class="r"><code>library(gmodels)</code></pre>
-<pre><code>## Warning: package &#39;gmodels&#39; was built under R version 4.0.4</code></pre>
 </div>
 <div id="importing-data" class="section level2" number="2.2">
 <h2 number="2.2"><span class="header-section-number">2.2</span> Importing Data</h2>
@@ -609,15 +608,12 @@ head(listings)</code></pre>
 <div id="linear-regression" class="section level1" number="3">
 <h1 number="3"><span class="header-section-number">3</span> Linear Regression</h1>
 <p>A linear regression model to determine how interest rate for loans is determined. This gives an idea of what the market considers “credit risks” and how much interest rate premium is demanded by the market for compensating for a specific credit risk.</p>
+<div id="model-1" class="section level2" number="3.1">
+<h2 number="3.1"><span class="header-section-number">3.1</span> Model 1</h2>
 <pre class="r"><code>listings_lm &lt;- listings
-
-############################################################################################################
 
 # Dummy Variable Creation
 listings_lm &lt;- as.data.frame(model.matrix(~.-1, listings_lm))
-
-############################################################################################################
-
 
 linear1 &lt;- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear1)</code></pre>
@@ -782,17 +778,23 @@ summary(linear1)</code></pre>
 ## Residual standard error: 1.305 on 33475 degrees of freedom
 ## Multiple R-squared:  0.9541, Adjusted R-squared:  0.954 
 ## F-statistic: 1.054e+04 on 66 and 33475 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code># income_range and income_range_description were not significant which is odd
-# ALL NOT SIGNIFICANT: months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog</code></pre>
-<pre class="r"><code># listings_lm = subset(listings_lm, select = -c(income_range, income_range_description, months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog))
-
-############################################################################################################
-
-# For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values. Another predictor variables may capture the variables, so we decided to remove those.
+<div id="multicollinearity" class="section level3" number="3.1.1">
+<h3 number="3.1.1"><span class="header-section-number">3.1.1</span> Multicollinearity</h3>
+<pre class="r"><code>library(corrplot)</code></pre>
+<pre><code>## corrplot 0.84 loaded</code></pre>
+<pre class="r"><code>cor.data &lt;- cor(listings_lm)
+# cor.data shows that some variables are highly correlated to each other
+# corrplot(cor.data, method = &#39;color&#39;)</code></pre>
+<p>cor.data shows that some variables are highly correlated to each other, which we see in Model 1 as NA values.</p>
+</div>
+</div>
+<div id="model-2" class="section level2" number="3.2">
+<h2 number="3.2"><span class="header-section-number">3.2</span> Model 2</h2>
+<pre class="r"><code># For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values.
+# For example, from cor.data, we can see that loan_status_descriptionDEFAULTED is very highly correlated to inquiries_last6_months
+# NA values in our model may be captured in other variables, so we decided to remove those, as well as insignificant variables.
 
 listings_lm = subset(listings_lm, select = -c(delinquencies_over90_days, delinquencies_over60_days, was_delinquent_derog, now_delinquent_derog, satisfactory_accounts, total_trade_items, revolving_available_percent, real_estate_payment, revolving_balance, real_estate_balance, installment_balance, amount_delinquent, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, months_employed, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `employment_status_descriptionNot employed`, `employment_status_descriptionOther`, `employment_status_descriptionPart-time`, `employment_status_descriptionRetired`, `income_range_descriptionNot employed`, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, income_range, `income_range_description$1-24,999`, `scorex702-723`, `scorex690-701`, `loan_status_descriptionDEFAULTED`))
-
-############################################################################################################
 
 linear2 &lt;- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear2)</code></pre>
@@ -891,14 +893,11 @@ summary(linear2)</code></pre>
 ## Residual standard error: 1.308 on 33503 degrees of freedom
 ## Multiple R-squared:  0.9538, Adjusted R-squared:  0.9538 
 ## F-statistic: 1.822e+04 on 38 and 33503 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code># ALL NOT SIGNIFICANT: stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days</code></pre>
-<pre class="r"><code># listings_lm = subset(listings_lm, select = -c(stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days))
-
-############################################################################################################
-
+</div>
+<div id="model-3" class="section level2" number="3.3">
+<h2 number="3.3"><span class="header-section-number">3.3</span> Model 3</h2>
+<pre class="r"><code># Removing insignificant variables from Model 2
 listings_lm = subset(listings_lm, select = -c(current_credit_lines, monthly_debt, `income_range_description$75,000-99,999`))
-
-############################################################################################################
 
 linear3 &lt;- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear3)</code></pre>
@@ -991,9 +990,10 @@ summary(linear3)</code></pre>
 ## Residual standard error: 1.308 on 33506 degrees of freedom
 ## Multiple R-squared:  0.9538, Adjusted R-squared:  0.9538 
 ## F-statistic: 1.978e+04 on 35 and 33506 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code># Not all factors of scorex, employment_status_description are significant
-# income_verifiable, dti_wprosper_loan are only significant at p-value &lt; 0.1</code></pre>
-<pre class="r"><code>############################################################################################################
+</div>
+<div id="model-4" class="section level2" number="3.4">
+<h2 number="3.4"><span class="header-section-number">3.4</span> Model 4</h2>
+<pre class="r"><code># Removing insignificant variables from Model 3
 
 listings_lm = subset(listings_lm, select = -c(stated_monthly_income))
 
@@ -1086,8 +1086,8 @@ summary(linear4)</code></pre>
 ## Residual standard error: 1.308 on 33507 degrees of freedom
 ## Multiple R-squared:  0.9538, Adjusted R-squared:  0.9538 
 ## F-statistic: 2.036e+04 on 34 and 33507 DF,  p-value: &lt; 2.2e-16</code></pre>
-<pre class="r"><code>############################################################################################################</code></pre>
 <p>With the +100,000 income category being significant, we can assume that at higher income levels, the rates are pretty much set. Only when we get into the lower to mid range incomes do the rates have to be more granular. With the credit score range of 690-723 not being significant, we can assume the majority of borrowers have scores in that range, making the rates for that range set. Only self-employed of the employment statuses was significant in determining the borrower rate. This could be because a self-employed person could have a less secure amount and frequency when compared to a full-time or part-time employee, making them unpredictable. Delinquencies were also not significant, from this we can probably assume some multicollinearity with other variables. On its own, delinquencies would probably have a significant effect on the borrower rate, but when coupled with credit score, the delinquencies are not a strong predictor (same thing with defaulted loans, probably).</p>
+</div>
 </div>
 <div id="logistic-regression" class="section level1" number="4">
 <h1 number="4"><span class="header-section-number">4</span> Logistic Regression</h1>
@@ -1100,12 +1100,8 @@ listings_glm &lt;- subset(listings_glm, loan_status_description != &quot;CURRENT
 # Assigned 1 if loan defaulted or chargedback, 0 if completed
 listings_glm$loan_status_description &lt;- ifelse(listings_glm$loan_status_description == &quot;COMPLETED&quot;, 0, 1) 
 
-############################################################################################################
-
 # Dummy Variable Creation
 listings_glm &lt;- as.data.frame(model.matrix(~.-1, listings_glm))
-
-############################################################################################################
 
 head(listings_glm)</code></pre>
 <pre><code>##   number_of_days principal_balance loan_status_description amount_funded
@@ -1269,6 +1265,8 @@ head(listings_glm)</code></pre>
 ## 5                         0            0
 ## 6                         0            0
 ## 8                         0            0</code></pre>
+<div id="model-1-1" class="section level2" number="4.1">
+<h2 number="4.1"><span class="header-section-number">4.1</span> Model 1</h2>
 <pre class="r"><code>log_m1 &lt;- glm(loan_status_description ~ ., data= listings_glm)
 summary(log_m1)</code></pre>
 <pre><code>## 
@@ -1432,16 +1430,13 @@ summary(log_m1)</code></pre>
 ## AIC: 5010
 ## 
 ## Number of Fisher Scoring iterations: 2</code></pre>
-<pre class="r"><code>#ALL NOT SIGNIFICANT: number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner</code></pre>
-<pre class="r"><code># #removing insignificant variables 
-# listings_glm = subset(listings_glm, select = -c(number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner))
-
-############################################################################################################
-
+</div>
+<div id="model-2-1" class="section level2" number="4.2">
+<h2 number="4.2"><span class="header-section-number">4.2</span> Model 2</h2>
+<pre class="r"><code># Removing insignificant variables from Model 1
 listings_glm = subset(listings_glm, select = -c(delinquencies_over60_days, delinquencies_over90_days, is_homeowner, installment_balance, real_estate_balance, revolving_balance,real_estate_payment, revolving_available_percent, total_inquiries, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog, amount_delinquent, current_credit_lines, open_credit_lines, credit_lines_last7_years, current_delinquencies, delinquencies_last7_years, public_records_last10_years, months_employed, `employment_status_descriptionPart-time`, employment_status_descriptionRetired, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, `income_range_description$75,000-99,999`, `income_range_descriptionNot employed`, stated_monthly_income, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `income_range_description$1-24,999`, `scorex600-619`, `scorex620-639`, `scorex640-649`, `scorex650-664`, `scorex665-689`, `scorex690-701`, `scorex702-723`, `scorex724-747`, `scorex748-777`, `scorex778+`, prosper_ratingD, prosper_ratingE, prosper_ratingHR))
 
-############################################################################################################</code></pre>
-<pre class="r"><code>log_m2 &lt;- glm(loan_status_description ~., data = listings_glm)
+log_m2 &lt;- glm(loan_status_description ~., data = listings_glm)
 summary(log_m2)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1514,16 +1509,14 @@ summary(log_m2)</code></pre>
 ## AIC: 5001.9
 ## 
 ## Number of Fisher Scoring iterations: 2</code></pre>
-<pre class="r"><code>#ALL NOT SIGNIFICANT: monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days</code></pre>
-<pre class="r"><code># #removing insignificant variables 
-# listings_glm = subset(listings_glm, select = -c(monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days, prosper_ratingC, prosper_ratingB, prosper_ratingAA))
-
-############################################################################################################
+</div>
+<div id="model-3-1" class="section level2" number="4.3">
+<h2 number="4.3"><span class="header-section-number">4.3</span> Model 3</h2>
+<pre class="r"><code># Removing insignificant variables from Model 2
 
 listings_glm = subset(listings_glm, select = -c(delinquencies_over30_days, bankcard_utilization, `employment_status_descriptionSelf-employed`))
 
-############################################################################################################</code></pre>
-<pre class="r"><code>log_m3 &lt;- glm(loan_status_description~ ., data = listings_glm)
+log_m3 &lt;- glm(loan_status_description~ ., data = listings_glm)
 summary(log_m3)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1591,6 +1584,7 @@ summary(log_m3)</code></pre>
 ## 
 ## Number of Fisher Scoring iterations: 2</code></pre>
 </div>
+</div>
 <div id="test" class="section level1" number="5">
 <h1 number="5"><span class="header-section-number">5</span> Test</h1>
 <pre class="r"><code>test_set &lt;- sample(1:nrow(listings_glm), 6709)
@@ -1599,9 +1593,6 @@ listings_test &lt;- listings_glm[test_set, -3]
 
 train_set_labels &lt;- listings_glm[-test_set, &#39;loan_status_description&#39;]
 test_set_labels &lt;- listings_glm[test_set, &#39;loan_status_description&#39;]
-
-############################################################################################################</code></pre>
-<pre class="r"><code>############################################################################################################
 
 prediction &lt;- predict(log_m3, newdata = listings_test, type = &quot;response&quot;)
 
@@ -1624,18 +1615,18 @@ CrossTable(x = test_set_labels, y = as.numeric(prediction&gt;0.5),
 ##                 | as.numeric(prediction &gt; 0.5) 
 ## test_set_labels |         0 |         1 | Row Total | 
 ## ----------------|-----------|-----------|-----------|
-##               0 |      5123 |         0 |      5123 | 
+##               0 |      5125 |         0 |      5125 | 
 ##                 |     1.000 |     0.000 |     0.764 | 
-##                 |     0.905 |     0.000 |           | 
+##                 |     0.911 |     0.000 |           | 
 ##                 |     0.764 |     0.000 |           | 
 ## ----------------|-----------|-----------|-----------|
-##               1 |       540 |      1046 |      1586 | 
-##                 |     0.340 |     0.660 |     0.236 | 
-##                 |     0.095 |     1.000 |           | 
-##                 |     0.080 |     0.156 |           | 
+##               1 |       498 |      1086 |      1584 | 
+##                 |     0.314 |     0.686 |     0.236 | 
+##                 |     0.089 |     1.000 |           | 
+##                 |     0.074 |     0.162 |           | 
 ## ----------------|-----------|-----------|-----------|
-##    Column Total |      5663 |      1046 |      6709 | 
-##                 |     0.844 |     0.156 |           | 
+##    Column Total |      5623 |      1086 |      6709 | 
+##                 |     0.838 |     0.162 |           | 
 ## ----------------|-----------|-----------|-----------|
 ## 
 ## </code></pre>

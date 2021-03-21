@@ -61,68 +61,63 @@ listings[,cols] <- lapply(listings[,cols], as.numeric)
 head(listings)
 ```
 
+
+
 # Linear Regression
 
 A linear regression model to determine how interest rate for loans is determined. This gives an idea of what the market considers “credit risks” and how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
+## Model 1
 ```{r}
 listings_lm <- listings
-
-############################################################################################################
 
 # Dummy Variable Creation
 listings_lm <- as.data.frame(model.matrix(~.-1, listings_lm))
 
-############################################################################################################
-
-
 linear1 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear1)
-# income_range and income_range_description were not significant which is odd
-# ALL NOT SIGNIFICANT: months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog
+
 ```
+### Multicollinearity
 ```{r}
-# listings_lm = subset(listings_lm, select = -c(income_range, income_range_description, months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog))
+library(corrplot)
+cor.data <- cor(listings_lm)
+# cor.data shows that some variables are highly correlated to each other
+# corrplot(cor.data, method = 'color')
+```
+cor.data shows that some variables are highly correlated to each other, which we see in Model 1 as NA values.
 
-############################################################################################################
-
-# For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values. Another predictor variables may capture the variables, so we decided to remove those.
+## Model 2
+```{r}
+# For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values.
+# For example, from cor.data, we can see that loan_status_descriptionDEFAULTED is very highly correlated to inquiries_last6_months
+# NA values in our model may be captured in other variables, so we decided to remove those, as well as insignificant variables.
 
 listings_lm = subset(listings_lm, select = -c(delinquencies_over90_days, delinquencies_over60_days, was_delinquent_derog, now_delinquent_derog, satisfactory_accounts, total_trade_items, revolving_available_percent, real_estate_payment, revolving_balance, real_estate_balance, installment_balance, amount_delinquent, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, months_employed, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `employment_status_descriptionNot employed`, `employment_status_descriptionOther`, `employment_status_descriptionPart-time`, `employment_status_descriptionRetired`, `income_range_descriptionNot employed`, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, income_range, `income_range_description$1-24,999`, `scorex702-723`, `scorex690-701`, `loan_status_descriptionDEFAULTED`))
 
-############################################################################################################
-
 linear2 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear2)
-
-# ALL NOT SIGNIFICANT: stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days
 ```
 
+## Model 3
+
 ```{r}
-# listings_lm = subset(listings_lm, select = -c(stated_monthly_income, current_credit_lines, delinquencies_over60_days, delinquencies_over90_days))
-
-############################################################################################################
-
+# Removing insignificant variables from Model 2
 listings_lm = subset(listings_lm, select = -c(current_credit_lines, monthly_debt, `income_range_description$75,000-99,999`))
-
-############################################################################################################
 
 linear3 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear3)
 
-# Not all factors of scorex, employment_status_description are significant
-# income_verifiable, dti_wprosper_loan are only significant at p-value < 0.1
 ```
 
+## Model 4
 ```{r}
-############################################################################################################
+# Removing insignificant variables from Model 3
 
 listings_lm = subset(listings_lm, select = -c(stated_monthly_income))
 
 linear4 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear4)
-
-############################################################################################################
 ```
 
 
@@ -143,52 +138,33 @@ listings_glm <- subset(listings_glm, loan_status_description != "CURRENT") #Remo
 # Assigned 1 if loan defaulted or chargedback, 0 if completed
 listings_glm$loan_status_description <- ifelse(listings_glm$loan_status_description == "COMPLETED", 0, 1) 
 
-############################################################################################################
-
 # Dummy Variable Creation
 listings_glm <- as.data.frame(model.matrix(~.-1, listings_glm))
 
-############################################################################################################
-
 head(listings_glm)
 ```
-
+## Model 1
 ```{r}
 log_m1 <- glm(loan_status_description ~ ., data= listings_glm)
 summary(log_m1)
-#ALL NOT SIGNIFICANT: number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner
 ```
+
+## Model 2
 ```{r}
-# #removing insignificant variables 
-# listings_glm = subset(listings_glm, select = -c(number_of_days, amount_funded, borrower_rate, listing_monthly_payment, scorex, listing_category_id, income_verifiable, income_range, income_range_description, stated_monthly_income, dti_wprosper_loan, months_employed, lender_indicator, current_delinquencies, delinquencies_last7_years, public_records_last10_years, credit_lines_last7_years, inquiries_last6_months, amount_delinquent, current_credit_lines, open_credit_lines, bankcard_utilization, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, total_inquiries, satisfactory_accounts, was_delinquent_derog, delinquencies_over30_days, delinquencies_over60_days, is_homeowner))
-
-############################################################################################################
-
+# Removing insignificant variables from Model 1
 listings_glm = subset(listings_glm, select = -c(delinquencies_over60_days, delinquencies_over90_days, is_homeowner, installment_balance, real_estate_balance, revolving_balance,real_estate_payment, revolving_available_percent, total_inquiries, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog, amount_delinquent, current_credit_lines, open_credit_lines, credit_lines_last7_years, current_delinquencies, delinquencies_last7_years, public_records_last10_years, months_employed, `employment_status_descriptionPart-time`, employment_status_descriptionRetired, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, `income_range_description$75,000-99,999`, `income_range_descriptionNot employed`, stated_monthly_income, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `income_range_description$1-24,999`, `scorex600-619`, `scorex620-639`, `scorex640-649`, `scorex650-664`, `scorex665-689`, `scorex690-701`, `scorex702-723`, `scorex724-747`, `scorex748-777`, `scorex778+`, prosper_ratingD, prosper_ratingE, prosper_ratingHR))
 
-############################################################################################################
-```
-
-```{r}
 log_m2 <- glm(loan_status_description ~., data = listings_glm)
 summary(log_m2)
-#ALL NOT SIGNIFICANT: monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days
 ```
 
-```{r}
-# #removing insignificant variables 
-# listings_glm = subset(listings_glm, select = -c(monthly_debt, revolving_available_percent, now_delinquent_derog, delinquencies_over90_days, prosper_ratingC, prosper_ratingB, prosper_ratingAA))
 
-############################################################################################################
+## Model 3
+```{r}
+# Removing insignificant variables from Model 2
 
 listings_glm = subset(listings_glm, select = -c(delinquencies_over30_days, bankcard_utilization, `employment_status_descriptionSelf-employed`))
 
-############################################################################################################
-
-```
-
-
-```{r}
 log_m3 <- glm(loan_status_description~ ., data = listings_glm)
 summary(log_m3)
 ```
@@ -203,12 +179,6 @@ listings_test <- listings_glm[test_set, -3]
 train_set_labels <- listings_glm[-test_set, 'loan_status_description']
 test_set_labels <- listings_glm[test_set, 'loan_status_description']
 
-############################################################################################################
-```
-
-```{r}
-############################################################################################################
-
 prediction <- predict(log_m3, newdata = listings_test, type = "response")
 
 CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
@@ -216,6 +186,7 @@ CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
 
 ############################################################################################################
 ```
+
 ## Logistic Regression Analysis
 
 For our logistic regression we choose to compare the results of the regression with a set of test data. The martix above shows our log regression model to have an accuracy of 91.8% which would likely be satisfactory for predicting defaults for a real loan company. 
