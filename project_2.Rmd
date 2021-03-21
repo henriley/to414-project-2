@@ -13,9 +13,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Project 2
+# Project 2: Prosper Data Analysis
 
-Our objective is to identify arbitrage opportunities. Are there elements that the market does not consider a risk factor - but it actually is? Looking in the opposite direction - are there elements that market considers a risk factor but actually it isn’t.
+Our objective is to identify arbitrage opportunities in the prosper marketplace. A linear regression can be used to identify what the market considers credit risks. A logistic regression can be used to identify the real factors that lead to defaults on loans. Comparing these findings will reveal what elements the market fails to recognize as a risk factor and which elements it considers risks but there actually isn't any risk.
+
+# Data Importing & Cleaning
 
 ## Importing Packages
 
@@ -46,7 +48,6 @@ sapply(listings, function(x) sum(is.na(x)))
 # Cleaning NA values
 listings$months_employed[is.na(listings$months_employed)] <- mean(listings$months_employed, na.rm=TRUE)
 
-
 # Converting logical values to binary 
 cols <- sapply(listings, is.logical)
 listings[,cols] <- lapply(listings[,cols], as.numeric)
@@ -59,9 +60,9 @@ head(listings)
 # After that, run the code again, and check whether NA value disappeared (Some of predictor variables have NA values may be significant, so show the works whether those are significant or not)
 ```
 
-## Linear Regression
+# Linear Regression
 
-A linear regression model to determine how interest rate for loans is determined. Essentially, we are getting an idea of what the market considers “credit risks”. We get a sense of how much interest rate premium is demanded by the market for compensating for a specific credit risk.
+A linear regression model to determine how interest rate for loans is determined. This gives an idea of what the market considers “credit risks” and how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
 ```{r}
 listings_lm <- listings
@@ -125,9 +126,9 @@ summary(linear4)
 With the +100,000 income category being significant, we can assume that at higher income levels, the rates are pretty much set. Only when we get into the lower to mid range incomes do the rates have to be more granular. With the credit score range of 690-723 not being significant, we can assume the majority of borrowers have scores in that range, making the rates for that range set. Only self-employed of the employment statuses was significant in determining the borrower rate. This could be because a self-employed person could have a less secure amount and frequency when compared to a full-time or part-time employee, making them unpredictable. Delinquencies were also not significant, from this we can probably assume some multicollinearity with other variables. On its own, delinquencies would probably have a significant effect on the borrower rate, but when coupled with credit score, the delinquencies are not a strong predictor (same thing with defaulted loans, probably).
 
 
-## Logistic Regression
+# Logistic Regression
 
-A logistic model of what factors lead to a loan default. Essentially we want to check our understanding from the last model. All the items that the last model showed as credit risks leading to compensatory adjustment in interest rate - do those items really cause defaults. Are there other items which cause default but which does not show in Model 1?
+A logistic model of what factors lead to a loan default. This reveals what factors really cause defaults.
 
 ```{r}
 # we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
@@ -191,7 +192,7 @@ summary(log_m3)
 ```
 
 
-# Didn't we do this? (Below)
+ Didn't we do this? (Below)
 
 ```{r}
 # # From office hour
@@ -201,9 +202,6 @@ summary(log_m3)
 # log_m3 <- glm(default~ ., data = listings_glm)
 # summary(log_m3)
 ```
-
-
-
 
 # Test
 ```{r}
@@ -233,64 +231,53 @@ prediction <- predict(log_m3, newdata = listings_test, type = "response")
 CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
            prop.chisq=FALSE)
 
-confusionMatrix(prediction, test_set_labels)
+#confusionMatrix(prediction, test_set_labels)
 
 ############################################################################################################
 ```
 
-# preliminary analysis
+# Arbitrage Opportunities
 
-(Some of these don't make intuitive sense...could be result of multicollinearity in models)
+Identifying differences in credit risks found from the linear regression model and default risks found from the logistic model finds inefficiencies in the market and an opportunity to invest. The linear regression found the following factors lead to higher loan interest rates:
 
-## Linear Regression risk factors
+* prosper rating B, C, D, E, HR
+* listing term
+* listing monthly payment
+* scorex 600-689
+* income range 100,000+
+* lender indicator
+* bankcard utilization
+* total open revolving accounts
+* total inquiries
+* delinquencies
 
-- prosper rating B-HR
-- listing term
-- listing monthly payment
-- score 600-689
-- income range 100,000+
-- lender indicator
-- bankcard utilization
-- total open revolving accounts
-- total inquiries
-- delinquencies
+However, the logistic model found the following were the factors that actually were risk factors resulting in defaults on loans:
 
-## Logistic Model default factors
+* principal balance
+* prosper rating B , C
+* income range 100,000+
+* not employed
+* lender indicator
+* monthly debt
+* public records last 12 months
+* total open revolving accounts
 
-- principal balance
-- prosper rating B & C
-- income range 100,000+
-- not employed
-- lender indicator
-- monthly debt
-- public records last 12 months
-- total open revolving accounts
+The differences in these lists indicates possible inefficiencies in the loan market. It should be noted these differences could also be attributed to possibly multicollinearity or insignificance in the models. The following factors the market does not consider a risk factor but it actually is (not significant in the linear regression model but has significant impact in the logistic model):
 
-## arbitrage opportunities
+* principal balance
+* not employed
+* monthly debt
+* public records last 12 months
 
-The market does not consider a risk factor but it actually is:
+The market considers the following factors a risk factor but it actually isn't (significant in the linear regression model but not in the logistic model):
 
-- principal balance
-- not employed
-- monthly debt
-- public records last 12 months
+* listing term
+* listed monthly payment
+* score 600-689
+* bankcard utilization
+* delinquencies
 
-The market considers a risk factor but it actually isn't:
-
-- listing term
-- listed monthly payment
-- score 600-689
-- bankcard utilization
-- delinquencies
-
-
-
-
-
-
-
-
-
+These loans where the market considers risk that the logistic model doesn't think is there provide an investment opportunity. It is recommended to invest in these loans because you could expect a better return than what the market predicts. These loans have a higher interest return and (based on our models) will not default as much as the market suggests.
 
 
 
