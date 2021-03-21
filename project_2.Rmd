@@ -41,23 +41,24 @@ str(listings)
 # Dropping redundant columns and columns with too many character factor levels 
 listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
 
+## Cleaning NA values
 # Check the number of NA in each variables
-colSums(is.na(listings))
 sapply(listings, function(x) sum(is.na(x)))
 
-# Cleaning NA values
+# We found some negative values in 'months_employed'. Change those value to Positive values
+listings$months_employed <- abs(listings$months_employed)
+
+# Replace rest NA values to the mean of 'months_employed' for better prediction
 listings$months_employed[is.na(listings$months_employed)] <- mean(listings$months_employed, na.rm=TRUE)
+
+#Replace NA values to '0' in 'installment_balance'
+listings$installment_balance[is.na(listings$installment_balance)] <- 0
 
 # Converting logical values to binary 
 cols <- sapply(listings, is.logical)
 listings[,cols] <- lapply(listings[,cols], as.numeric)
 
 head(listings)
-
-# Comments from office hour
-# We may want to try to change NA value to 0 in months_employed and in installments balance
-# kEEP THE NA VALUE AND ONLY REMOVED ALL INSIGNIFICANT VARIABLES. (SUGGESTION)
-# After that, run the code again, and check whether NA value disappeared (Some of predictor variables have NA values may be significant, so show the works whether those are significant or not)
 ```
 
 # Linear Regression
@@ -84,6 +85,8 @@ summary(linear1)
 # listings_lm = subset(listings_lm, select = -c(income_range, income_range_description, months_employed, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, installment_balance, real_estate_balance, revolving_balance, real_estate_payment, revolving_available_percent, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog))
 
 ############################################################################################################
+
+# For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values. Another predictor variables may capture the variables, so we decided to remove those.
 
 listings_lm = subset(listings_lm, select = -c(delinquencies_over90_days, delinquencies_over60_days, was_delinquent_derog, now_delinquent_derog, satisfactory_accounts, total_trade_items, revolving_available_percent, real_estate_payment, revolving_balance, real_estate_balance, installment_balance, amount_delinquent, current_delinquencies, delinquencies_last7_years, public_records_last10_years, public_records_last12_months, credit_lines_last7_years, months_employed, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `employment_status_descriptionNot employed`, `employment_status_descriptionOther`, `employment_status_descriptionPart-time`, `employment_status_descriptionRetired`, `income_range_descriptionNot employed`, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, income_range, `income_range_description$1-24,999`, `scorex702-723`, `scorex690-701`, `loan_status_descriptionDEFAULTED`))
 
@@ -131,9 +134,8 @@ With the +100,000 income category being significant, we can assume that at highe
 A logistic model of what factors lead to a loan default. This reveals what factors really cause defaults.
 
 ```{r}
-# we gotta solve for loan_status, but I bet we gotta change this column to default (1) or not (0)
-# even though there are four options (defaulted, chargeoff, completed, current)
-# From the internet: The term "charge off" means that the original creditor has given up on being repaid according to the original terms of the loan. It considers the remaining balance to be bad debt, but that doesn't mean you no longer owe the amount that has not been repaid.
+
+# Terminology: The term "charge off" means that the original creditor has given up on being repaid according to the original terms of the loan. It considers the remaining balance to be bad debt, but that doesn't mean you no longer owe the amount that has not been repaid.
 
 listings_glm <- listings
 listings_glm <- subset(listings_glm, loan_status_description != "CURRENT") #Removed loans still pending
@@ -191,27 +193,8 @@ log_m3 <- glm(loan_status_description~ ., data = listings_glm)
 summary(log_m3)
 ```
 
-
- Didn't we do this? (Below)
-
-```{r}
-# # From office hour
-# ## Response Variable: default: some predictor variables are changed in terms of 'significant level'.
-# 
-# # We could start the logistic regression model from beginning, with 'default' as the response variable
-# log_m3 <- glm(default~ ., data = listings_glm)
-# summary(log_m3)
-```
-
 # Test
 ```{r}
-# prdictVar <- predict(log_m3, type='response')
-# predictBin <- ifelse(prdictVar > 0.5, 1, 0)
-# 
-# ## Almost correct, but the arguments do not have the same length. Don't know how to modify it
-# confusionMatrix <- table(prd=predictBin, act=listings$borrower_rate)
-
-############################################################################################################
 
 test_set <- sample(1:nrow(listings_glm), 6709)
 listings_train <- listings_glm[-test_set, -3]
@@ -230,8 +213,6 @@ prediction <- predict(log_m3, newdata = listings_test, type = "response")
 
 CrossTable(x = test_set_labels, y = as.numeric(prediction>0.5),
            prop.chisq=FALSE)
-
-#confusionMatrix(prediction, test_set_labels)
 
 ############################################################################################################
 ```
