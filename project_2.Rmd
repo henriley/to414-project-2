@@ -22,10 +22,12 @@ Our objective is to identify arbitrage opportunities in the prosper marketplace.
 ## Importing Packages
 
 ```{r}
+library(corrplot)
 library(gmodels)
 ```
 
 ## Importing Data
+
 ```{r}
 listings <- read.csv('ProjectA_Listings2013.csv', stringsAsFactors = TRUE)
 head(listings)
@@ -37,6 +39,7 @@ str(listings)
 
 
 ## Data Cleaning
+
 ```{r}
 # Dropping redundant columns and columns with too many character factor levels 
 listings = subset(listings, select = -c(borrower_city, borrower_state, loan_status, first_recorded_credit_line, loan_origination_date, occupation))
@@ -61,13 +64,12 @@ listings[,cols] <- lapply(listings[,cols], as.numeric)
 head(listings)
 ```
 
-
-
 # Linear Regression
 
 A linear regression model to determine how interest rate for loans is determined. This gives an idea of what the market considers “credit risks” and how much interest rate premium is demanded by the market for compensating for a specific credit risk.
 
 ## Model 1
+
 ```{r}
 listings_lm <- listings
 
@@ -78,9 +80,10 @@ linear1 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear1)
 
 ```
+
 ### Multicollinearity
+
 ```{r}
-library(corrplot)
 cor.data <- cor(listings_lm)
 # cor.data shows that some variables are highly correlated to each other
 # corrplot(cor.data, method = 'color')
@@ -88,6 +91,7 @@ cor.data <- cor(listings_lm)
 cor.data shows that some variables are highly correlated to each other, which we see in Model 1 as NA values.
 
 ## Model 2
+
 ```{r}
 # For NA values that appeared in our model, if two variables are too highly correlated, it is possible to appear as NA values.
 # For example, from cor.data, we can see that loan_status_descriptionDEFAULTED is very highly correlated to inquiries_last6_months
@@ -111,6 +115,7 @@ summary(linear3)
 ```
 
 ## Model 4
+
 ```{r}
 # Removing insignificant variables from Model 3
 
@@ -119,7 +124,6 @@ listings_lm = subset(listings_lm, select = -c(stated_monthly_income))
 linear4 <- lm(borrower_rate ~ ., data=listings_lm)
 summary(linear4)
 ```
-
 
 With the +100,000 income category being significant, we can assume that at higher income levels, the rates are pretty much set. Only when we get into the lower to mid range incomes do the rates have to be more granular. With the credit score range of 690-723 not being significant, we can assume the majority of borrowers have scores in that range, making the rates for that range set. Only self-employed of the employment statuses was significant in determining the borrower rate. This could be because a self-employed person could have a less secure amount and frequency when compared to a full-time or part-time employee, making them unpredictable. Delinquencies were also not significant, from this we can probably assume some multicollinearity with other variables. On its own, delinquencies would probably have a significant effect on the borrower rate, but when coupled with credit score, the delinquencies are not a strong predictor (same thing with defaulted loans, probably).
 
@@ -143,13 +147,16 @@ listings_glm <- as.data.frame(model.matrix(~.-1, listings_glm))
 
 head(listings_glm)
 ```
+
 ## Model 1
+
 ```{r}
 log_m1 <- glm(loan_status_description ~ ., data= listings_glm)
 summary(log_m1)
 ```
 
 ## Model 2
+
 ```{r}
 # Removing insignificant variables from Model 1
 listings_glm = subset(listings_glm, select = -c(delinquencies_over60_days, delinquencies_over90_days, is_homeowner, installment_balance, real_estate_balance, revolving_balance,real_estate_payment, revolving_available_percent, total_inquiries, total_trade_items, satisfactory_accounts, now_delinquent_derog, was_delinquent_derog, amount_delinquent, current_credit_lines, open_credit_lines, credit_lines_last7_years, current_delinquencies, delinquencies_last7_years, public_records_last10_years, months_employed, `employment_status_descriptionPart-time`, employment_status_descriptionRetired, `income_range_description$25,000-49,999`, `income_range_description$50,000-74,999`, `income_range_description$75,000-99,999`, `income_range_descriptionNot employed`, stated_monthly_income, income_verifiable, dti_wprosper_loan, `employment_status_descriptionFull-time`, `income_range_description$1-24,999`, `scorex600-619`, `scorex620-639`, `scorex640-649`, `scorex650-664`, `scorex665-689`, `scorex690-701`, `scorex702-723`, `scorex724-747`, `scorex748-777`, `scorex778+`, prosper_ratingD, prosper_ratingE, prosper_ratingHR))
@@ -158,8 +165,8 @@ log_m2 <- glm(loan_status_description ~., data = listings_glm)
 summary(log_m2)
 ```
 
-
 ## Model 3
+
 ```{r}
 # Removing insignificant variables from Model 2
 
@@ -170,6 +177,7 @@ summary(log_m3)
 ```
 
 # Test
+
 ```{r}
 
 test_set <- sample(1:nrow(listings_glm), 6709)
